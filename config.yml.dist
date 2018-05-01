@@ -1,0 +1,6 @@
+trello-api-key: ''
+trello-api-token: ''
+trello-board-id: ''
+trello-doing-list-name: 'Doing'
+youtrack-api-key: ''
+youtrack-base-url: 'https://youtrack.example.com'

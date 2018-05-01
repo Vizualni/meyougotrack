@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Dashboard Template for Bootstrap</title>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/vue.js"></script>
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+
+            var app = new Vue({
+                el: '#time',
+                data: {
+                    items: [],
+                    total: '0h'
+                },
+                mounted: function () {
+                    this.getTime();
+                },
+                methods: {
+                    getTime: function () {
+                        var self = this;
+                        $.get({
+                            url: '/get-time',
+                            dataType: 'json',
+                            success: function (data) {
+
+                                for(var d in data) {
+                                    data[d].card.worktype = 'Work';
+                                    
+                                    if (data[d].issue == null) {
+                                        data[d].issue = {}
+                                    }
+
+                                    data[d].issue.key_fields = {};
+
+                                    for (var k in data[d].issue.Fields) {
+                                        data[d].issue.key_fields[data[d].issue.Fields[k].Name] = data[d].issue.Fields[k].Value;
+                                    }
+                                }
+
+                                self.items = data;
+
+
+                                console.log(data);
+                                self.update();
+                            },
+                            error: function (error) {
+                                console.log(error);
+                            }
+                        });
+
+                    },
+                    logTime: function() {
+                        var self = this;
+
+                        var items = self.items;
+
+                        var dataToSend = [];
+                        for (i in items) {
+                            items[i].card.duration = parseInt(items[i].card.duration);
+                            dataToSend.push(items[i].card);
+                        }
+                        $.post({
+                            url: '/save-time',
+                            dataType: 'json',
+                            data: JSON.stringify(dataToSend),
+                            success: function (data) {
+                                alert(data);
+                            }
+                        })
+                    },
+                    update: function() {
+                        var totalMinutes = 0;
+
+                        for (i in this.items) {
+                            totalMinutes += parseInt(this.items[i].card.duration);
+                            this.items[i].card.prettyTime = this.calculateTime(this.items[i].card.duration);
+                        }
+
+                        this.total = this.calculateTime(totalMinutes);
+                    },
+                    calculateTime: function (minutes) {
+                        var s = '';
+                        var hours = Math.floor(minutes / 60);
+
+                        if (hours > 0) {
+                            s = hours + ' sati ';
+                        }
+
+                        var m = minutes % 60;
+
+                        s += m + ' minuta';
+
+                        return s;
+                    }
+                }
+
+            });
+        });
+    </script>
+
+</head>
+
+<body>
+
+<div class="container-fluid" id="time">
+<h2 style="text-align: center">MeYouGoTrack</h2>
+    <div v-for="item in items">
+
+        <div class="row">
+
+            <input type="text" v-model="item.card.title" style="min-width: 500px"/>
+            <textarea disabled>{{item.issue.key_fields.summary}}</textarea>
+            <textarea v-model="item.card.description"></textarea>
+            <input type="number" v-model="item.card.duration" v-on:change="update" v-on:keyup="update"/>
+            <textarea disabled>{{item.card.prettyTime}}</textarea>
+            <textarea disabled>{{item.card.date}}</textarea>
+            <select name="worktype" v-model="item.card.worktype">
+                <option value="Work" selected="true">Work</option>
+                <option value="Meeting">Meeting</option>
+                <option value="Education">Education</option>
+            </select>
+        </div>
+
+    </div>
+    <span>{{total}}</span>
+    <button v-on:click="logTime()">Logiraj</button>
+</div>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+
+<script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
+        integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+        crossorigin="anonymous"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+
+<!-- Custom styles for this template -->
+
+</body>
+</html>
